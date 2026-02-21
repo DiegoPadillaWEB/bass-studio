@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bass Studio Clicker V2</title>
-<link rel="manifest" href="manifest.json">
+    <title>Bass Studio Neon</title>
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#121212">
     <script>
         if ('serviceWorker' in navigator) {
@@ -13,18 +13,21 @@
             });
         }
     </script>
+
     <style>
         :root {
-            --bg-color: #121212;
-            --panel-bg: #1e1e1e;
-            --accent: #ff3b3b; /* Un rojo más rockero/metal */
+            --bg-color: #0a0a0a; /* Fondo más oscuro */
+            --panel-bg: #141414;
+            --accent: #ff3b3b; /* Rojo Neón */
+            --glow: #ff3b3b80; /* Resplandor */
             --text: #ffffff;
             --text-muted: #a0a0a0;
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
+            background-image: radial-gradient(circle at center, #1a0000 0%, var(--bg-color) 70%);
             color: var(--text);
             margin: 0;
             padding: 0;
@@ -36,29 +39,39 @@
             overflow: hidden;
         }
 
-        /* --- ZONA SUPERIOR --- */
+        /* --- ZONA SUPERIOR (NEÓN) --- */
         .stats-container {
             text-align: center;
-            padding: 15px;
+            padding: 20px;
             background-color: var(--panel-bg);
-            border-bottom: 2px solid #333;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            border-bottom: 2px solid var(--accent);
+            box-shadow: 0 0 20px var(--glow);
             z-index: 10;
         }
 
-        h1 { margin: 0; font-size: 1.5rem; color: var(--text); letter-spacing: 2px; }
-        .rojo { color: var(--accent); }
+        h1 { 
+            margin: 0; 
+            font-size: 1.3rem; 
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text);
+            text-shadow: 0 0 10px var(--accent);
+        }
         
         .score-display {
-            font-size: 3.5rem;
-            font-weight: bold;
+            font-size: 4rem;
+            font-weight: 800;
             margin: 5px 0;
-            text-shadow: 0 0 15px rgba(255, 59, 59, 0.4);
+            /* Efecto Neón Intenso */
+            text-shadow: 
+                0 0 5px var(--accent),
+                0 0 15px var(--accent),
+                0 0 30px var(--accent);
         }
 
-        .rate-display { color: var(--text-muted); font-size: 1rem; }
+        .rate-display { color: var(--text-muted); font-size: 0.9rem; letter-spacing: 1px; }
 
-        /* --- ZONA CENTRAL (EL BAJO) --- */
+        /* --- ZONA CENTRAL (IMAGEN REAL) --- */
         .game-area {
             flex-grow: 1;
             display: flex;
@@ -68,83 +81,97 @@
             flex-direction: column;
         }
 
-        .main-button {
-            width: 220px;
-            height: 220px;
-            background: radial-gradient(circle, #2a2a2a 0%, #111 100%);
-            border: 5px solid var(--accent);
+        .main-button-container {
+            width: 240px;
+            height: 240px;
             border-radius: 50%;
+            /* Anillos de luz neón */
+            box-shadow: 
+                0 0 20px var(--accent),
+                inset 0 0 30px var(--accent);
+            border: 4px solid var(--accent);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 6rem;
+            background: #000;
             cursor: pointer;
-            box-shadow: 0 0 40px rgba(255, 59, 59, 0.2), inset 0 0 30px rgba(0,0,0,0.9);
             touch-action: manipulation; 
+            transition: transform 0.05s;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .main-button-container:active { transform: scale(0.97); }
+
+        /* Imagen del Bajo */
+        .bass-image {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px var(--accent));
             transition: filter 0.1s;
         }
 
-        /* Efecto visual al tocar */
-        .shake {
-            animation: shake-animation 0.1s cubic-bezier(.36,.07,.19,.97) both;
-            filter: brightness(1.3);
-        }
-
+        .shake { animation: shake-animation 0.1s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake-animation {
-            0% { transform: translate(0, 0) scale(0.95); }
-            25% { transform: translate(-3px, 3px) scale(0.95); }
-            50% { transform: translate(3px, -3px) scale(0.95); }
-            75% { transform: translate(-3px, -3px) scale(0.95); }
-            100% { transform: translate(0, 0) scale(1); }
+            0% { transform: translate(0, 0) scale(0.97); filter: brightness(1.5) drop-shadow(0 0 20px var(--accent)); }
+            25% { transform: translate(-3px, 3px) scale(0.97); }
+            50% { transform: translate(3px, -3px) scale(0.97); }
+            75% { transform: translate(-3px, -3px) scale(0.97); }
+            100% { transform: translate(0, 0) scale(1); filter: brightness(1) drop-shadow(0 0 10px var(--accent)); }
         }
 
         .floating-text {
             position: absolute;
-            color: var(--text);
-            font-weight: bold;
-            font-size: 2rem;
-            text-shadow: 0 0 5px var(--accent);
+            color: var(--accent);
+            font-weight: 900;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px var(--accent);
             pointer-events: none;
-            animation: floatUp 0.8s ease-out forwards;
+            z-index: 20;
+            animation: floatUp 0.7s ease-out forwards;
         }
-
         @keyframes floatUp {
             0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-120px) scale(1.5); opacity: 0; }
+            100% { transform: translateY(-150px) scale(1.2); opacity: 0; }
         }
 
-        /* --- BOTÓN DE MONETIZACIÓN (ADMOB PREP) --- */
+        /* --- BOTÓN ANUNCIO --- */
         .ad-btn {
-            margin-top: 20px;
-            background: linear-gradient(45deg, #ff9f43, #ff6b6b);
+            margin-top: 25px;
+            background: linear-gradient(45deg, var(--accent), #ff7b00);
             border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 12px 25px;
+            border-radius: 30px;
             color: white;
             font-weight: bold;
+            font-size: 1rem;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            box-shadow: 0 0 20px var(--glow);
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
             animation: pulse 2s infinite;
         }
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { box-shadow: 0 0 20px var(--glow); }
+            50% { box-shadow: 0 0 40px var(--accent); }
+            100% { box-shadow: 0 0 20px var(--glow); }
         }
 
-        /* --- ZONA INFERIOR (TIENDA) --- */
+        /* --- TIENDA NEÓN --- */
         .store-container {
-            height: 45vh;
+            height: 42vh;
             background-color: var(--panel-bg);
-            border-top: 2px solid var(--accent);
+            border-top: 3px solid var(--accent);
+            box-shadow: 0 -10px 30px rgba(255, 59, 59, 0.2);
             overflow-y: auto;
             padding: 15px;
         }
 
-        .store-title { text-align: center; color: var(--text-muted); margin-top: 0; }
+        .store-title { text-align: center; color: var(--text); margin-top: 0; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px var(--accent); }
 
         .upgrade-card {
-            background-color: #2a2a2a;
+            background-color: #222;
+            border: 1px solid #333;
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 12px;
@@ -152,88 +179,107 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            border-left: 4px solid transparent;
             transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
         }
 
-        .upgrade-card:active { background-color: #3a3a3a; transform: scale(0.98); }
-        .upgrade-card.disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%); }
-        .upgrade-card:not(.disabled) { border-left-color: var(--accent); }
+        /* Resplandor al pasar el mouse o activar */
+        .upgrade-card:not(.disabled):hover { border-color: var(--accent); box-shadow: 0 0 15px var(--glow); }
+        .upgrade-card:active { transform: scale(0.98); }
+        .upgrade-card.disabled { opacity: 0.5; filter: grayscale(100%); }
 
-        .upgrade-info h3 { margin: 0 0 5px 0; font-size: 1.2rem; }
-        .upgrade-info p { margin: 0; font-size: 0.9rem; color: var(--text-muted); }
+        .upgrade-info { display: flex; align-items: center; gap: 15px; }
+        /* Iconos de la tienda */
+        .store-icon { width: 50px; height: 50px; object-fit: contain; filter: drop-shadow(0 0 5px var(--accent)); }
+
+        .upgrade-details h3 { margin: 0 0 5px 0; font-size: 1.1rem; color: var(--text); }
+        .upgrade-details p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
         
         .upgrade-cost {
-            background-color: #111;
-            color: var(--accent);
+            background-color: var(--accent);
+            color: #000;
             padding: 8px 15px;
-            border-radius: 8px;
+            border-radius: 20px;
             font-weight: bold;
-            border: 1px solid #333;
+            box-shadow: 0 0 10px var(--accent);
         }
     </style>
 </head>
 <body>
 
     <div class="stats-container">
-        <h1>BASS <span class="rojo">STUDIO</span></h1>
+        <h1>BASS STUDIO <span style="color:var(--accent)">NEON</span></h1>
         <div class="score-display" id="scoreDisplay">0</div>
         <div class="rate-display"><span id="mpsDisplay">0</span> notas / segundo</div>
     </div>
 
     <div class="game-area" id="gameArea">
-        <div class="main-button" id="clickButton">🎸</div>
+        <div class="main-button-container" id="clickButton">
+            <img src="https://purepng.com/public/uploads/large/purepng.com-bass-guitarguitarmusical-instrumentstring-instrumentbass-651520254116slv1u.png" alt="Bass Guitar" class="bass-image" id="bassImage">
+        </div>
         
-        <button class="ad-btn" id="adButton" onclick="verAnuncio()">📺 Ver Anuncio (x2 Notas)</button>
+        <button class="ad-btn" id="adButton" onclick="verAnuncio()">📺 Boost x2 (30s)</button>
     </div>
 
     <div class="store-container">
-        <h3 class="store-title">🎛️ Equipos de Grabación</h3>
+        <h3 class="store-title">Equipos Profesionales</h3>
         
         <div class="upgrade-card" id="upg_cuerdas" onclick="comprarMejora('cuerdas')">
             <div class="upgrade-info">
-                <h3>Cuerdas de Acero</h3>
-                <p>+1 nota por toque (Manual)</p>
-                <p style="font-size: 0.8rem; color: #888;">Nivel: <span id="lvl_cuerdas">0</span></p>
+                <img src="https://cdn-icons-png.flaticon.com/512/1261/1261066.png" class="store-icon">
+                <div class="upgrade-details">
+                    <h3>Cuerdas de Neón</h3>
+                    <p>+1 nota/toque (Manual)</p>
+                    <p style="color: var(--accent);">Nivel: <span id="lvl_cuerdas">0</span></p>
+                </div>
             </div>
             <div class="upgrade-cost" id="cost_cuerdas">15</div>
         </div>
 
         <div class="upgrade-card" id="upg_pedal" onclick="comprarMejora('pedal')">
             <div class="upgrade-info">
-                <h3>Pedal de Distorsión</h3>
-                <p>+2 notas por seg. (Automático)</p>
-                <p style="font-size: 0.8rem; color: #888;">Nivel: <span id="lvl_pedal">0</span></p>
+                <img src="https://cdn-icons-png.flaticon.com/512/3920/3920873.png" class="store-icon">
+                <div class="upgrade-details">
+                    <h3>Pedal Darkglass</h3>
+                    <p>+2 notas/seg (Auto)</p>
+                    <p style="color: var(--accent);">Nivel: <span id="lvl_pedal">0</span></p>
+                </div>
             </div>
             <div class="upgrade-cost" id="cost_pedal">50</div>
         </div>
 
         <div class="upgrade-card" id="upg_ampli" onclick="comprarMejora('ampli')">
             <div class="upgrade-info">
-                <h3>Amplificador de Tubos</h3>
-                <p>+10 notas por seg. (Automático)</p>
-                <p style="font-size: 0.8rem; color: #888;">Nivel: <span id="lvl_ampli">0</span></p>
+                <img src="https://cdn-icons-png.flaticon.com/512/1139/1139069.png" class="store-icon">
+                <div class="upgrade-details">
+                    <h3>Ampeg Stack</h3>
+                    <p>+10 notas/seg (Auto)</p>
+                    <p style="color: var(--accent);">Nivel: <span id="lvl_ampli">0</span></p>
+                </div>
             </div>
             <div class="upgrade-cost" id="cost_ampli">250</div>
         </div>
 
         <div class="upgrade-card" id="upg_interfaz" onclick="comprarMejora('interfaz')">
             <div class="upgrade-info">
-                <h3>Interfaz Pro de Estudio</h3>
-                <p>+50 notas por seg. (Automático)</p>
-                <p style="font-size: 0.8rem; color: #888;">Nivel: <span id="lvl_interfaz">0</span></p>
+                <img src="https://cdn-icons-png.flaticon.com/512/8124/8124367.png" class="store-icon">
+                <div class="upgrade-details">
+                    <h3>Universal Audio</h3>
+                    <p>+50 notas/seg (Auto)</p>
+                    <p style="color: var(--accent);">Nivel: <span id="lvl_interfaz">0</span></p>
+                </div>
             </div>
             <div class="upgrade-cost" id="cost_interfaz">1000</div>
         </div>
     </div>
 
     <script>
-        // --- EFECTOS DE SONIDO ---
-        // Usamos un archivo MP3 de bajo real libre de derechos alojado en internet
+        // --- EFECTOS DE SONIDO (Misma lógica anterior) ---
         const sonidoBajo = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_2491a90c00.mp3?filename=bass-slap-101150.mp3');
         const sonidoCompra = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3');
 
-        // --- VARIABLES DEL JUEGO ---
+        // --- VARIABLES ---
         let notas = 0;
         let notasPorClick = 1;
         let notasPorSegundo = 0;
@@ -249,16 +295,18 @@
         const scoreDisplay = document.getElementById('scoreDisplay');
         const mpsDisplay = document.getElementById('mpsDisplay');
         const clickButton = document.getElementById('clickButton');
+        const bassImage = document.getElementById('bassImage');
         const gameArea = document.getElementById('gameArea');
 
-        // --- SISTEMA DE GUARDADO (LOCALSTORAGE) ---
+        // --- GUARDADO ---
         function guardarJuego() {
             const datosJuego = { notas, notasPorClick, notasPorSegundo, mejoras };
-            localStorage.setItem('bassStudioSave', JSON.stringify(datosJuego));
+            localStorage.setItem('bassStudioSaveV3', JSON.stringify(datosJuego));
         }
 
         function cargarJuego() {
-            const guardado = localStorage.getItem('bassStudioSave');
+            // Cambié la clave a V3 para evitar conflictos con versiones anteriores
+            const guardado = localStorage.getItem('bassStudioSaveV3');
             if (guardado) {
                 const datos = JSON.parse(guardado);
                 notas = datos.notas;
@@ -269,26 +317,24 @@
             actualizarPantalla();
         }
 
-        // --- SISTEMA DE CLICS CON SONIDO Y VFX ---
+        // --- CLICS ---
         clickButton.addEventListener('pointerdown', (e) => {
-            // Reproducir sonido (clonamos para poder tocar muy rápido)
             let clonSonido = sonidoBajo.cloneNode();
             clonSonido.volume = 0.6;
             clonSonido.play();
 
-            // Lógica
             const ganancias = notasPorClick * multiplicadorAnuncio;
             notas += ganancias;
             actualizarPantalla();
             crearNotaFlotante(e.clientX, e.clientY, ganancias);
             
-            // Efecto Visual de Vibración
-            clickButton.classList.remove('shake'); // Reiniciamos
-            void clickButton.offsetWidth; // Truco de magia en CSS para reiniciar animación
-            clickButton.classList.add('shake');
+            // Animación de sacudida en la IMAGEN
+            bassImage.classList.remove('shake');
+            void bassImage.offsetWidth;
+            bassImage.classList.add('shake');
         });
 
-        // --- SISTEMA AUTOMÁTICO ---
+        // --- AUTOMÁTICO ---
         setInterval(() => {
             if (notasPorSegundo > 0) {
                 notas += (notasPorSegundo * multiplicadorAnuncio) / 10;
@@ -296,14 +342,12 @@
             }
         }, 100);
 
-        // Auto-Guardado cada 3 segundos
         setInterval(guardarJuego, 3000);
 
-        // --- SISTEMA DE COMPRAS ---
+        // --- COMPRAS ---
         function comprarMejora(id) {
             const mejora = mejoras[id];
             if (notas >= mejora.costo) {
-                // Reproducir sonido de caja registradora
                 let clonCompra = sonidoCompra.cloneNode();
                 clonCompra.volume = 0.5;
                 clonCompra.play();
@@ -316,42 +360,43 @@
 
                 mejora.costo = Math.floor(mejora.costo * mejora.mult);
                 actualizarPantalla();
-                guardarJuego(); // Guardamos justo al comprar
+                guardarJuego();
             }
         }
 
-        // --- SISTEMA DE ANUNCIOS (MONETIZACIÓN PREP) ---
+        // --- ANUNCIOS SIMULADOS ---
         function verAnuncio() {
-            // Aquí en el futuro irá el código de Google AdMob. 
-            // Por ahora simulamos que el usuario vio un video de 3 segundos.
             const btn = document.getElementById('adButton');
-            btn.innerText = "Cargando Anuncio...";
+            btn.innerText = "📺 Cargando...";
             btn.disabled = true;
+            btn.style.background = "#555";
 
             setTimeout(() => {
-                alert("¡Gracias por ver el anuncio! Tus ganancias se duplican por 30 segundos.");
                 multiplicadorAnuncio = 2;
-                btn.innerText = "⚡ ¡Ganancias x2 Activadas! ⚡";
+                btn.innerText = "⚡ BOOST ACTIVO (30s) ⚡";
+                // Hacemos que el botón brille en verde neón mientras está activo
                 btn.style.background = "#2ed573";
+                btn.style.boxShadow = "0 0 30px #2ed573";
 
-                // El efecto se acaba a los 30 segundos
                 setTimeout(() => {
                     multiplicadorAnuncio = 1;
-                    btn.innerText = "📺 Ver Anuncio (x2 Notas)";
-                    btn.style.background = "linear-gradient(45deg, #ff9f43, #ff6b6b)";
+                    btn.innerText = "📺 Boost x2 (30s)";
+                    // Regresamos al estilo original
+                    btn.style.background = "linear-gradient(45deg, var(--accent), #ff7b00)";
+                    btn.style.boxShadow = "0 0 20px var(--glow)";
                     btn.disabled = false;
-                }, 30000); // 30 segundos
-            }, 1000);
+                }, 30000);
+            }, 1500);
         }
 
-        // --- INTERFAZ Y EFECTOS ---
+        // --- INTERFAZ ---
         function actualizarPantalla() {
-            scoreDisplay.innerText = Math.floor(notas);
-            mpsDisplay.innerText = notasPorSegundo * multiplicadorAnuncio;
+            scoreDisplay.innerText = Math.floor(notas).toLocaleString(); // Agrega comas a los miles
+            mpsDisplay.innerText = (notasPorSegundo * multiplicadorAnuncio).toLocaleString();
 
             for (let id in mejoras) {
                 const mejora = mejoras[id];
-                document.getElementById(`cost_${id}`).innerText = Math.floor(mejora.costo);
+                document.getElementById(`cost_${id}`).innerText = Math.floor(mejora.costo).toLocaleString();
                 document.getElementById(`lvl_${id}`).innerText = mejora.nivel;
 
                 const tarjeta = document.getElementById(`upg_${id}`);
@@ -368,21 +413,20 @@
             texto.classList.add('floating-text');
             texto.innerText = `+${valor}`;
             
+            // Centramos mejor la nota sobre el puntero
             if (x && y) {
-                texto.style.left = `${x - 20}px`;
-                texto.style.top = `${y - 40}px`;
+                texto.style.left = `${x - 30}px`;
+                texto.style.top = `${y - 50}px`;
             } else {
-                texto.style.left = '50%';
+                texto.style.left = '45%';
                 texto.style.top = '40%';
             }
 
             gameArea.appendChild(texto);
-            setTimeout(() => texto.remove(), 800);
+            setTimeout(() => texto.remove(), 700);
         }
 
-        // Arrancar el juego cargando los datos guardados
         cargarJuego();
-
     </script>
 </body>
 </html>
