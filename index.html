@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bass Studio Clicker V2</title>
+<link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js');
+            });
+        }
+    </script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --accent: #ff3b3b; /* Un rojo más rockero/metal */
+            --text: #ffffff;
+            --text-muted: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            user-select: none; 
+            -webkit-user-select: none;
+            overflow: hidden;
+        }
+
+        /* --- ZONA SUPERIOR --- */
+        .stats-container {
+            text-align: center;
+            padding: 15px;
+            background-color: var(--panel-bg);
+            border-bottom: 2px solid #333;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; color: var(--text); letter-spacing: 2px; }
+        .rojo { color: var(--accent); }
+        
+        .score-display {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin: 5px 0;
+            text-shadow: 0 0 15px rgba(255, 59, 59, 0.4);
+        }
+
+        .rate-display { color: var(--text-muted); font-size: 1rem; }
+
+        /* --- ZONA CENTRAL (EL BAJO) --- */
+        .game-area {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            flex-direction: column;
+        }
+
+        .main-button {
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, #2a2a2a 0%, #111 100%);
+            border: 5px solid var(--accent);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 6rem;
+            cursor: pointer;
+            box-shadow: 0 0 40px rgba(255, 59, 59, 0.2), inset 0 0 30px rgba(0,0,0,0.9);
+            touch-action: manipulation; 
+            transition: filter 0.1s;
+        }
+
+        /* Efecto visual al tocar */
+        .shake {
+            animation: shake-animation 0.1s cubic-bezier(.36,.07,.19,.97) both;
+            filter: brightness(1.3);
+        }
+
+        @keyframes shake-animation {
+            0% { transform: translate(0, 0) scale(0.95); }
+            25% { transform: translate(-3px, 3px) scale(0.95); }
+            50% { transform: translate(3px, -3px) scale(0.95); }
+            75% { transform: translate(-3px, -3px) scale(0.95); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        .floating-text {
+            position: absolute;
+            color: var(--text);
+            font-weight: bold;
+            font-size: 2rem;
+            text-shadow: 0 0 5px var(--accent);
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-120px) scale(1.5); opacity: 0; }
+        }
+
+        /* --- BOTÓN DE MONETIZACIÓN (ADMOB PREP) --- */
+        .ad-btn {
+            margin-top: 20px;
+            background: linear-gradient(45deg, #ff9f43, #ff6b6b);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- ZONA INFERIOR (TIENDA) --- */
+        .store-container {
+            height: 45vh;
+            background-color: var(--panel-bg);
+            border-top: 2px solid var(--accent);
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .store-title { text-align: center; color: var(--text-muted); margin-top: 0; }
+
+        .upgrade-card {
+            background-color: #2a2a2a;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .upgrade-card:active { background-color: #3a3a3a; transform: scale(0.98); }
+        .upgrade-card.disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%); }
+        .upgrade-card:not(.disabled) { border-left-color: var(--accent); }
+
+        .upgrade-info h3 { margin: 0 0 5px 0; font-size: 1.2rem; }
+        .upgrade-info p { margin: 0; font-size: 0.9rem; color: var(--text-muted); }
+        
+        .upgrade-cost {
+            background-color: #111;
+            color: var(--accent);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stats-container">
+        <h1>BASS <span class="rojo">STUDIO</span></h1>
+        <div class="score-display" id="scoreDisplay">0</div>
+        <div class="rate-display"><span id="mpsDisplay">0</span> notas / segundo</div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+        <div class="main-button" id="clickButton">🎸</div>
+        
+        <button class="ad-btn" id="adButton" onclick="verAnuncio()">📺 Ver Anuncio (x2 Notas)</button>
+    </div>
+
+    <div class="store-container">
+        <h3 class="store-title">🎛️ Equipos de Grabación</h3>
+        
+        <div class="upgrade-card" id="upg_cuerdas" onclick="comprarMejora('cuerdas')">
+            <div class="upgrade-info">
+                <h3>Cuerdas de Acero</h3>
+                <p>+1 nota por toque (Manual)</p>
+                <p style="font-size: 0.8rem; color: #888;">Nivel: <span id="lvl_cuerdas">0</span></p>
+            </div>
+            <div class="upgrade-cost" id="cost_cuerdas">15</div>
+        </div>
+
+        <div class="upgrade-card" id="upg_pedal" onclick="comprarMejora('pedal')">
+            <div class="upgrade-info">
+                <h3>Pedal de Distorsión</h3>
+                <p>+2 notas por seg. (Automático)</p>
+                <p style="font-size: 0.8rem; color: #888;">Nivel: <span id="lvl_pedal">0</span></p>
+            </div>
+            <div class="upgrade-cost" id="cost_pedal">50</div>
+        </div>
+
+        <div class="upgrade-card" id="upg_ampli" onclick="comprarMejora('ampli')">
+            <div class="upgrade-info">
+                <h3>Amplificador de Tubos</h3>
+                <p>+10 notas por seg. (Automático)</p>
+                <p style="font-size: 0.8rem; color: #888;">Nivel: <span id="lvl_ampli">0</span></p>
+            </div>
+            <div class="upgrade-cost" id="cost_ampli">250</div>
+        </div>
+
+        <div class="upgrade-card" id="upg_interfaz" onclick="comprarMejora('interfaz')">
+            <div class="upgrade-info">
+                <h3>Interfaz Pro de Estudio</h3>
+                <p>+50 notas por seg. (Automático)</p>
+                <p style="font-size: 0.8rem; color: #888;">Nivel: <span id="lvl_interfaz">0</span></p>
+            </div>
+            <div class="upgrade-cost" id="cost_interfaz">1000</div>
+        </div>
+    </div>
+
+    <script>
+        // --- EFECTOS DE SONIDO ---
+        // Usamos un archivo MP3 de bajo real libre de derechos alojado en internet
+        const sonidoBajo = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_2491a90c00.mp3?filename=bass-slap-101150.mp3');
+        const sonidoCompra = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3');
+
+        // --- VARIABLES DEL JUEGO ---
+        let notas = 0;
+        let notasPorClick = 1;
+        let notasPorSegundo = 0;
+        let multiplicadorAnuncio = 1; 
+
+        let mejoras = {
+            cuerdas: { costo: 15, nivel: 0, mult: 1.5, tipo: 'click', valor: 1 },
+            pedal: { costo: 50, nivel: 0, mult: 1.15, tipo: 'auto', valor: 2 },
+            ampli: { costo: 250, nivel: 0, mult: 1.15, tipo: 'auto', valor: 10 },
+            interfaz: { costo: 1000, nivel: 0, mult: 1.15, tipo: 'auto', valor: 50 }
+        };
+
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const mpsDisplay = document.getElementById('mpsDisplay');
+        const clickButton = document.getElementById('clickButton');
+        const gameArea = document.getElementById('gameArea');
+
+        // --- SISTEMA DE GUARDADO (LOCALSTORAGE) ---
+        function guardarJuego() {
+            const datosJuego = { notas, notasPorClick, notasPorSegundo, mejoras };
+            localStorage.setItem('bassStudioSave', JSON.stringify(datosJuego));
+        }
+
+        function cargarJuego() {
+            const guardado = localStorage.getItem('bassStudioSave');
+            if (guardado) {
+                const datos = JSON.parse(guardado);
+                notas = datos.notas;
+                notasPorClick = datos.notasPorClick;
+                notasPorSegundo = datos.notasPorSegundo;
+                mejoras = datos.mejoras;
+            }
+            actualizarPantalla();
+        }
+
+        // --- SISTEMA DE CLICS CON SONIDO Y VFX ---
+        clickButton.addEventListener('pointerdown', (e) => {
+            // Reproducir sonido (clonamos para poder tocar muy rápido)
+            let clonSonido = sonidoBajo.cloneNode();
+            clonSonido.volume = 0.6;
+            clonSonido.play();
+
+            // Lógica
+            const ganancias = notasPorClick * multiplicadorAnuncio;
+            notas += ganancias;
+            actualizarPantalla();
+            crearNotaFlotante(e.clientX, e.clientY, ganancias);
+            
+            // Efecto Visual de Vibración
+            clickButton.classList.remove('shake'); // Reiniciamos
+            void clickButton.offsetWidth; // Truco de magia en CSS para reiniciar animación
+            clickButton.classList.add('shake');
+        });
+
+        // --- SISTEMA AUTOMÁTICO ---
+        setInterval(() => {
+            if (notasPorSegundo > 0) {
+                notas += (notasPorSegundo * multiplicadorAnuncio) / 10;
+                actualizarPantalla();
+            }
+        }, 100);
+
+        // Auto-Guardado cada 3 segundos
+        setInterval(guardarJuego, 3000);
+
+        // --- SISTEMA DE COMPRAS ---
+        function comprarMejora(id) {
+            const mejora = mejoras[id];
+            if (notas >= mejora.costo) {
+                // Reproducir sonido de caja registradora
+                let clonCompra = sonidoCompra.cloneNode();
+                clonCompra.volume = 0.5;
+                clonCompra.play();
+
+                notas -= mejora.costo;
+                mejora.nivel++;
+                
+                if (mejora.tipo === 'click') notasPorClick += mejora.valor;
+                if (mejora.tipo === 'auto') notasPorSegundo += mejora.valor;
+
+                mejora.costo = Math.floor(mejora.costo * mejora.mult);
+                actualizarPantalla();
+                guardarJuego(); // Guardamos justo al comprar
+            }
+        }
+
+        // --- SISTEMA DE ANUNCIOS (MONETIZACIÓN PREP) ---
+        function verAnuncio() {
+            // Aquí en el futuro irá el código de Google AdMob. 
+            // Por ahora simulamos que el usuario vio un video de 3 segundos.
+            const btn = document.getElementById('adButton');
+            btn.innerText = "Cargando Anuncio...";
+            btn.disabled = true;
+
+            setTimeout(() => {
+                alert("¡Gracias por ver el anuncio! Tus ganancias se duplican por 30 segundos.");
+                multiplicadorAnuncio = 2;
+                btn.innerText = "⚡ ¡Ganancias x2 Activadas! ⚡";
+                btn.style.background = "#2ed573";
+
+                // El efecto se acaba a los 30 segundos
+                setTimeout(() => {
+                    multiplicadorAnuncio = 1;
+                    btn.innerText = "📺 Ver Anuncio (x2 Notas)";
+                    btn.style.background = "linear-gradient(45deg, #ff9f43, #ff6b6b)";
+                    btn.disabled = false;
+                }, 30000); // 30 segundos
+            }, 1000);
+        }
+
+        // --- INTERFAZ Y EFECTOS ---
+        function actualizarPantalla() {
+            scoreDisplay.innerText = Math.floor(notas);
+            mpsDisplay.innerText = notasPorSegundo * multiplicadorAnuncio;
+
+            for (let id in mejoras) {
+                const mejora = mejoras[id];
+                document.getElementById(`cost_${id}`).innerText = Math.floor(mejora.costo);
+                document.getElementById(`lvl_${id}`).innerText = mejora.nivel;
+
+                const tarjeta = document.getElementById(`upg_${id}`);
+                if (notas < mejora.costo) {
+                    tarjeta.classList.add('disabled');
+                } else {
+                    tarjeta.classList.remove('disabled');
+                }
+            }
+        }
+
+        function crearNotaFlotante(x, y, valor) {
+            const texto = document.createElement('div');
+            texto.classList.add('floating-text');
+            texto.innerText = `+${valor}`;
+            
+            if (x && y) {
+                texto.style.left = `${x - 20}px`;
+                texto.style.top = `${y - 40}px`;
+            } else {
+                texto.style.left = '50%';
+                texto.style.top = '40%';
+            }
+
+            gameArea.appendChild(texto);
+            setTimeout(() => texto.remove(), 800);
+        }
+
+        // Arrancar el juego cargando los datos guardados
+        cargarJuego();
+
+    </script>
+</body>
+</html>
