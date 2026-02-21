@@ -1,4 +1,4 @@
-const CACHE_NAME = "bass-studio-v1";
+const CACHE_NAME = "bass-studio-v2-neon";
 const urlsToCache = ["./", "./index.html", "./manifest.json"];
 
 self.addEventListener("install", event => {
@@ -7,4 +7,5 @@ self.addEventListener("install", event => {
 
 self.addEventListener("fetch", event => {
   event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
+
 });
